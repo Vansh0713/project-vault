@@ -1,44 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Project Vault File Upload</title>
+  <title>Project Vault - Upload</title>
 </head>
 <body>
-  <h2>🔐 Upload File to Project Vault</h2>
+  <h2>🔐 Project Vault File Upload</h2>
 
-  <input type="file" id="fileInput" required><br><br>
-  <input type="text" id="tokenInput" placeholder="Paste your JWT token here" required><br><br>
+  <label>JWT Token:</label><br />
+  <input type="text" id="token" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWF0IjoxNzUyMjI5NzY3LCJleHAiOjE3NTIyMzMzNjd9.Nic8nf..." style="width: 400px;" /><br /><br />
+
+  <label>Select File:</label><br />
+  <input type="file" id="file" /><br /><br />
+
   <button onclick="uploadFile()">Upload</button>
 
-  <pre id="response" style="margin-top: 20px; background: #eee; padding: 10px;"></pre>
+  <p id="status"></p>
 
   <script>
     async function uploadFile() {
-      const file = document.getElementById('fileInput').files[0];
-      const token = document.getElementById('tokenInput').value;
+      const token = document.getElementById('token').value.trim();
+      const fileInput = document.getElementById('file');
+      const status = document.getElementById('status');
 
-      if (!file || !token) {
-        alert("Please select a file and enter your token.");
+      if (!token) {
+        status.innerText = "❌ Please enter your JWT token.";
+        return;
+      }
+
+      if (fileInput.files.length === 0) {
+        status.innerText = "❌ Please select a file to upload.";
         return;
       }
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", fileInput.files[0]);
 
       try {
-        fetch('https://<your-railway-subdomain>.up.railway.app/api/upload', {
-          method: 'POST',
+        const res = await fetch("https://project-vault-production.up.railway.app/api/upload", {
+          method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: "Bearer " + token
           },
           body: formData
         });
 
         const data = await res.json();
-        document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+        if (res.ok) {
+          status.innerText = "✅ Upload Successful: " + data.file.filename;
+        } else {
+          status.innerText = "❌ Error: " + data.message;
+        }
       } catch (err) {
-        document.getElementById('response').textContent = "Upload failed: " + err.message;
+        console.error(err);
+        status.innerText = "❌ Upload failed. Check console.";
       }
     }
   </script>
