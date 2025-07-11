@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Vault File Upload</title>
+</head>
+<body>
+  <h2>🔐 Upload File to Project Vault</h2>
+
+  <input type="file" id="fileInput" required><br><br>
+  <input type="text" id="tokenInput" placeholder="Paste your JWT token here" required><br><br>
+  <button onclick="uploadFile()">Upload</button>
+
+  <pre id="response" style="margin-top: 20px; background: #eee; padding: 10px;"></pre>
+
+  <script>
+    async function uploadFile() {
+      const file = document.getElementById('fileInput').files[0];
+      const token = document.getElementById('tokenInput').value;
+
+      if (!file || !token) {
+        alert("Please select a file and enter your token.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('http://localhost:5000/api/upload', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('response').textContent = "Upload failed: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
